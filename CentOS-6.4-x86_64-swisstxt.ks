@@ -10,16 +10,15 @@ rootpw --iscrypted $1$esW0xSO9$5QojXX2ul5gHti70gLkwp0
 authconfig --enableshadow --passalgo=sha512
 timezone --utc Europe/Zurich
 bootloader --location=mbr --append="nofb quiet splash=quiet"
-firstboot --disable
 
-network --bootproto dhcp
+network --device=eth0 --bootproto dhcp
 
 clearpart --all --initlabel
 part /boot --fstype ext4 --size=512 --ondisk=sda --asprimary
-part pv.00  --size=1 --grow --asprimary --ondisk=sda
+part pv.00 --size=1 --grow --asprimary --ondisk=sda
 volgroup system pv.00
-logvol swap   --vgname=system   --size=4096     --name=swap   --fstype=swa
-logvol /      --vgname=system   --size=20480    --name=root   --fstype=ext3
+logvol swap --vgname=system --size=2096 --name=swap --fstype=swap
+logvol / --vgname=system --grow --maxsize= --name=root --fstype=ext3
 
 
 %packages
