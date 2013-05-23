@@ -10,21 +10,21 @@ rootpw --iscrypted $1$esW0xSO9$5QojXX2ul5gHti70gLkwp0
 authconfig --enableshadow --passalgo=sha512
 timezone --utc Europe/Zurich
 bootloader --location=mbr --append="nofb quiet splash=quiet"
+firstboot --disable
 
 network --bootproto dhcp
 
 clearpart --all --initlabel
 part /boot --fstype ext4 --size=512 --ondisk=sda --asprimary
 part pv.00  --size=1 --grow --asprimary --ondisk=sda
-logvol swap   --vgname=VolGroup   --size=4096     --name=swap     --fstype=swa
-logvol /      --vgname=VolGropu   --size=20480    --name=system   --fstype=ext3
+volgroup system pv.00
+logvol swap   --vgname=system   --size=4096     --name=swap   --fstype=swa
+logvol /      --vgname=system   --size=20480    --name=root   --fstype=ext3
 
 
 %packages
 @core
 @server-policy
-rubygems
-ruby-json
 e4fsprogs
 irqbalance
 man-pages
@@ -34,15 +34,31 @@ redhat-lsb-core
 vim-enhanced
 wget
 
+
 %post
 /usr/bin/chvt 3
-echo "updating system time"
 /usr/sbin/ntpdate -sub 0.ch.pool.ntp.org
-/usr/sbin/hwclock --systohc
 
-su -c 'rpm -Uvh http://mirror.switch.ch/ftp/mirror/epel/6/i386/epel-release-6-8.noarch.rpm'
+cat <<-EOD > /etc/yum.repos.d/swisstxt.repo
+[swisstxt]
+name=SWISS TXT Yum Repostory
+baseurl=http://yum.swisstxt.ch/centos.6.x86_64.swisstxt
+enabled=1
+gpgcheck=0
+priority=1
+EOD
+
 yum -t -y -e 0 upgrade
 yum -t -y -e 0 install puppet
+
+# find first usable puppetmaster
+puppetmaster="`getent ahosts puppet`" || 
+for site in bie zrh; do
+  for nr in `seq -f %02.0f 0 9`; do
+    puppetmaster="`getent ahosts puppet-${site}-${nr}`" && break 2
+  done
+done
+puppetmaster="`echo $retval | awk '{print $3}'`"
 
 cat <<-EOD > /etc/puppet/puppet.conf
 [main]
@@ -63,6 +79,6 @@ cat <<-EOD > /etc/puppet/puppet.conf
 EOD
 
 /bin/touch /etc/puppet/namespaceauth.conf
-puppet agent --test
+test -n "$puppetmaster" && puppet agent --test --server $puppetmaster
 
 exit 0
