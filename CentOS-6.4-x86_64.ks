@@ -6,7 +6,7 @@ url --url http://mirror.switch.ch/ftp/mirror/centos/6.4/os/x86_64/
 lang en_US.UTF-8
 firewall --service=ssh
 keyboard sg-latin1
-rootpw --iscrypted %DEFAULTPW%
+rootpw --iscrypted $1$esW0xSO9$5QojXX2ul5gHti70gLkwp0
 authconfig --enableshadow --passalgo=sha512
 timezone --utc Europe/Zurich
 bootloader --location=mbr --append="nofb quiet splash=quiet"
