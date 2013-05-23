@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# exit on failure
-set -e
-
 BUILDROOT=/srv/kickstart/cloudstack/buildroot
 ISO_URL=http://mirror.switch.ch/ftp/mirror/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-netinstall.iso
 ISO_NAME=`basename $ISO_URL`
 ISO_GEN_NAME=`echo $ISO_NAME | sed 's/....$//'`-swisstxt.iso
 KICKSTART="`dirname $(readlink -f $0)`/CentOS-6.4-x86_64-swisstxt.ks"
+
+cleanup() {
+  mount | grep -q $ISO_NAME && umount mnt
+  rm -rf build/*
+}
+
+# exit on failure
+set -e
 
 # change to buildroot
 cd $BUILDROOT
@@ -16,11 +21,10 @@ cd $BUILDROOT
 mkdir -p {dist,mnt,build,gen}
 
 # clean up
-mount | grep -q $ISO_NAME && umount mnt
-rm -rf build/*
+cleanup
 
 # fetch iso
-wget -nc -O dist/$ISO_NAME $ISO_URL || true
+test -f dist/$ISO_NAME || wget -nc -O dist/$ISO_NAME $ISO_URL
 
 # mount iso
 mount -o loop dist/$ISO_NAME mnt
@@ -31,11 +35,16 @@ cp -a mnt/* build
 # add kickstart
 cp $KICKSTART build/isolinux/custom.ks
 
+# add ks option to boot menu entries
+sed -i 's/append/append ks=custom.ks/' build/isolinux/isolinux.cfg
+
+# set boot menu timeout to 5s
+sed -i 's/timeout.*/timeout 5/' build/isolinux/isolinux.cfg
+
 # build iso
 mkisofs -o gen/$ISO_GEN_NAME -r -R -J -input-charset utf-8 \
   -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
   -V "CentOS 6" -A "CentOS 6" -p Six -T build/isolinux/
 
 # clean up
-mount | grep -q $ISO_NAME && umount mnt
-rm -rf build/*
+cleanup
