@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# exit on failure
+set -e
+
+BUILDROOT=/srv/kickstart/cloudstack/buildroot
+ISO_URL=http://mirror.switch.ch/ftp/mirror/centos/6.4/isos/x86_64/CentOS-6.4-x86_64-netinstall.iso
+ISO_NAME=`basename $ISO_URL`
+ISO_GEN_NAME=`echo $ISO_NAME | sed 's/....$//'`-swisstxt.iso
+KICKSTART="`dirname $(readlink -f $0)`/CentOS-6.4-x86_64-swisstxt.ks"
+
+# change to buildroot
+cd $BUILDROOT
+
+# setup dirs
+mkdir -p {dist,mnt,build,gen}
+
+# clean up
+mount | grep -q $ISO_NAME && umount mnt
+rm -rf build/*
+
+# fetch iso
+wget -nc -O dist/$ISO_NAME $ISO_URL || true
+
+# mount iso
+mount -o loop dist/$ISO_NAME mnt
+
+# cp files to build
+cp -a mnt/* build
+
+# add kickstart
+cp $KICKSTART build/isolinux/custom.ks
+
+# build iso
+mkisofs -o gen/$ISO_GEN_NAME -r -R -J -input-charset utf-8 \
+  -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
+  -V "CentOS 6" -A "CentOS 6" -p Six -T build/isolinux/
+
+# clean up
+mount | grep -q $ISO_NAME && umount mnt
+rm -rf build/*
