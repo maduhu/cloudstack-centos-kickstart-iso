@@ -18,7 +18,7 @@ part /boot --fstype ext4 --size=512 --ondisk=sda --asprimary
 part pv.00 --size=1 --grow --asprimary --ondisk=sda
 volgroup system pv.00
 logvol swap --vgname=system --size=2096 --name=swap --fstype=swap
-logvol / --vgname=system --grow --maxsize= --name=root --fstype=ext3
+logvol / --vgname=system --grow --maxsize=20480 --name=root --fstype=ext4
 
 
 %packages
