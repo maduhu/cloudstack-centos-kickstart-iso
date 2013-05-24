@@ -25,6 +25,7 @@ logvol / --vgname=system --grow --size 2048 --maxsize=20480 --name=root --fstype
 %packages
 @core
 @server-policy
+yum-priorities
 e4fsprogs
 irqbalance
 man-pages
@@ -48,6 +49,16 @@ baseurl=http://yum.swisstxt.ch/centos.6.x86_64.swisstxt
 enabled=1
 gpgcheck=0
 priority=1
+EOD
+
+cat <<-EOD > /etc/yum.repos.d/epel.repo
+[epel]
+name=Extra Packages for Enterprise Linux $releasever - $basearch
+mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=epel-$releasever&arch=$basearch
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL
+priority=15
 EOD
 
 yum -t -y -e 0 upgrade
@@ -81,6 +92,6 @@ cat <<-EOD > /etc/puppet/puppet.conf
 EOD
 
 /bin/touch /etc/puppet/namespaceauth.conf
-test -n "$puppetmaster" && puppet agent --test --server $puppetmaster
+test -n "$puppetmaster" && puppet agent --test
 
 exit 0
