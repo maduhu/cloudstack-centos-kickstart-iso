@@ -36,8 +36,10 @@ wget
 
 
 %post
+exec < /dev/tty3 > /dev/tty3
 /usr/bin/chvt 3
 /usr/sbin/ntpdate -sub 0.ch.pool.ntp.org
+chkconfig ntpd on
 
 cat <<-EOD > /etc/yum.repos.d/swisstxt.repo
 [swisstxt]
@@ -58,7 +60,7 @@ for site in bie zrh; do
     puppetmaster="`getent ahosts puppet-${site}-${nr}`" && break 2
   done
 done
-puppetmaster="`echo $retval | awk '{print $3}'`"
+puppetmaster="`echo $puppetmaster | awk '{print $3}'`"
 
 cat <<-EOD > /etc/puppet/puppet.conf
 [main]
@@ -69,12 +71,12 @@ cat <<-EOD > /etc/puppet/puppet.conf
     pluginsync = true
 
 [agent]
-    classfile = $vardir/classes.txt
-    localconfig = $vardir/localconfig
-    ssldir = $vardir/ssl
+    classfile = \$vardir/classes.txt
+    localconfig = \$vardir/localconfig
+    ssldir = \$vardir/ssl
     logdest = /var/log/puppet/puppet.log
     environment = production
-    server = puppet
+    server = $puppetmaster
     report = true
 EOD
 
