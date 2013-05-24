@@ -53,8 +53,8 @@ EOD
 
 cat <<-EOD > /etc/yum.repos.d/epel.repo
 [epel]
-name=Extra Packages for Enterprise Linux $releasever - $basearch
-mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=epel-$releasever&arch=$basearch
+name=Extra Packages for Enterprise Linux \$releasever - $basearch
+mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=epel-\$releasever&arch=\$basearch
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL
