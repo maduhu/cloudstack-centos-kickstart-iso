@@ -39,7 +39,7 @@ cp -a mnt/* build
 cp $SCRIPTROOT/$KICKSTART build/isolinux/custom.ks
 
 # add ks option to boot menu entries
-sed -i 's/append/append ks=custom.ks/' build/isolinux/isolinux.cfg
+sed -i 's/append/append ks=cdrom:custom.ks' build/isolinux/isolinux.cfg
 
 # set boot menu timeout to 5s
 sed -i 's/timeout.*/timeout 5/' build/isolinux/isolinux.cfg
