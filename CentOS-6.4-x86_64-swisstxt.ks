@@ -13,12 +13,13 @@ bootloader --location=mbr --append="nofb quiet splash=quiet"
 
 network --device=eth0 --bootproto dhcp
 
+zerombr
 clearpart --all --initlabel
 part /boot --fstype ext4 --size=512 --ondisk=sda --asprimary
 part pv.00 --size=1 --grow --asprimary --ondisk=sda
 volgroup system pv.00
 logvol swap --vgname=system --size=2096 --name=swap --fstype=swap
-logvol / --vgname=system --grow --maxsize=20480 --name=root --fstype=ext4
+logvol / --vgname=system --grow --size 2048 --maxsize=20480 --name=root --fstype=ext4
 
 
 %packages
