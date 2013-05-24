@@ -39,7 +39,7 @@ cp -a mnt/* build
 cp $SCRIPTROOT/$KICKSTART build/isolinux/custom.ks
 
 # add ks option to boot menu entries
-sed -i 's/append/append ks=cdrom:custom.ks' build/isolinux/isolinux.cfg
+sed -i 's/append/append ks=cdrom:custom.ks/' build/isolinux/isolinux.cfg
 
 # set boot menu timeout to 5s
 sed -i 's/timeout.*/timeout 5/' build/isolinux/isolinux.cfg
@@ -50,15 +50,18 @@ mkisofs -o gen/$ISO_GEN_NAME.iso -r -R -J -input-charset utf-8 \
   -V "CentOS 6" -A "CentOS 6" -p Six -T build/isolinux/
 
 # register in cloudstack 
-#registerIso(
-#  name=""$ISO_GEN_NAME,
-#  displaytext="https://bitbucket.org/swisstxt/kickstart-iso",
-#  url="http://kickstart-iso.swisstxt.ch/$ISO_GEN_NAME.iso",
-#  zoneid="-1",
-#  isfeatured="true",
-#  ispublic="true",
-#  ostypeid="ad90197c-31ab-4dce-be17-08463f5634c9",
-#)
+# https://gist.github.com/lonefreak/4026896
+cloudstack_api.sh command=listIsos | grep -q $ISO_GEN_NAME || 
+cloudstack_api.sh command=registerIso \
+  name=""$ISO_GEN_NAME \
+  displaytext="https://bitbucket.org/swisstxt/kickstart-iso" \
+  url="http://ks.swisstxt.ch/cloudstack/buildroot/gen/$ISO_GEN_NAME.iso" \
+  zoneid="-1" \
+  isfeatured="true" \
+  ispublic="true" \
+  ostypeid="ad90197c-31ab-4dce-be17-08463f5634c9"
 
 # clean up
 cleanup
+
+# EOF
