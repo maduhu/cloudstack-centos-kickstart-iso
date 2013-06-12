@@ -51,17 +51,7 @@ gpgcheck=0
 priority=1
 EOD
 
-su -c 'rpm -Uvh http://mirror.switch.ch/ftp/mirror/epel/6/i386/epel-release-6-8.noarch.rpm'
-cat <<-EOD > /etc/yum.repos.d/epel.repo
-[epel]
-name=Extra Packages for Enterprise Linux \$releasever - $basearch
-mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=epel-\$releasever&arch=\$basearch
-enabled=1
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL
-priority=15
-EOD
-
+rpm -Uvh http://mirror.switch.ch/ftp/mirror/epel/6/i386/epel-release-6-8.noarch.rpm
 yum -t -y -e 0 upgrade
 yum -t -y -e 0 install puppet
 
