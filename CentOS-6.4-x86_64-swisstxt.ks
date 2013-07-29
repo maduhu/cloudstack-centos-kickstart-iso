@@ -39,7 +39,7 @@ wget
 %post
 exec < /dev/tty3 > /dev/tty3
 /usr/bin/chvt 3
-/usr/sbin/ntpdate -sub 0.ch.pool.ntp.org
+/usr/sbin/ntpdate -sub ch.pool.ntp.org
 chkconfig ntpd on
 
 cat <<-EOD > /etc/yum.repos.d/swisstxt.repo
@@ -82,72 +82,9 @@ cat <<-EOD > /etc/puppet/puppet.conf
     report = true
 EOD
 
-# Enable API publci key support for Cloudstack 
+# Enable API public key support for Cloudstack 
 # see http://cloudstack.apache.org/docs/en-US/Apache_CloudStack/4.0.2/html/Installation_Guide/using-sshkeys.html
-cat <<-EOD > /etc/init.d/cloud-set-guest-sshkey.in
-# chkconfig: 345 98 02
-# description: SSH Public Keys Download Client
-
-# Modify this line to specify the user (default is root)
-user=root
-
-# Add your DHCP lease folders here
-DHCP_FOLDERS="/var/lib/dhclient/* /var/lib/dhcp3/*"
-keys_received=0
-file_count=0
-
-for DHCP_FILE in $DHCP_FOLDERS
-do
-	if [ -f $DHCP_FILE ]
-	then
-		file_count=$((file_count+1))
-		SSHKEY_SERVER_IP=$(grep dhcp-server-identifier $DHCP_FILE | tail -1 | awk '{print $NF}' | tr -d '\;')
-
-		if [ -n $SSHKEY_SERVER_IP ]
-		then
-			logger -t "cloud" "Sending request to ssh key server at $SSHKEY_SERVER_IP"
-
-			publickey=$(wget -t 3 -T 20 -O - http://$SSHKEY_SERVER_IP/latest/public-keys 2>/dev/null)
-
-			if [ $? -eq 0 ]
-			then
-				logger -t "cloud" "Got response from server at $SSHKEY_SERVER_IP"
-				keys_received=1
-				break
-			fi
-		else
-			logger -t "cloud" "Could not find ssh key server IP in $DHCP_FILE"
-		fi
-	fi
-done
-
-# did we find the keys anywhere?
-if [ "$keys_received" == "0" ]
-then
-    logger -t "cloud" "Failed to get ssh keys from any server"
-    exit 1
-fi
-
-# set ssh public key
-homedir=$(grep ^$user /etc/passwd|awk -F ":" '{print $6}')
-sshdir=$homedir/.ssh
-authorized=$sshdir/authorized_keys
-
-if [ ! -e $sshdir ]
-then
-    mkdir $sshdir
-fi
-
-if [ ! -e $authorized ]
-then
-    touch $authorized
-fi
-
-cat $authorized|grep -v "$publickey" > $authorized
-echo "$publickey" >> $authorized
-
-exit 0
-EOD
+wget -O /etc/init.d/cloud-set-guest-sshkey.in "http://downloads.sourceforge.net/project/cloudstack/SSH%20Key%20Gen%20Script/cloud-set-guest-sshkey.in?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fcloudstack%2Ffiles%2FSSH%2520Key%2520Gen%2520Script%2F&ts=1331225219&use_mirror=iweb"
 chmod +x /etc/init.d/cloud-set-guest-sshkey.in
 chkconfig --add cloud-set-guest-sshkey.in
 
