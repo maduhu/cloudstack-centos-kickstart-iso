@@ -2,12 +2,12 @@
 
 SCRIPTROOT=`dirname $(readlink -f $0)`
 BUILDROOT=/srv/kickstart/cloudstack/buildroot
-KICKSTART="CentOS-6.5-x86_64-swisstxt.ks"
-ISO_URL=http://mirror.switch.ch/ftp/mirror/centos/6.4/isos/x86_64/CentOS-6.5-x86_64-netinstall.iso
+KICKSTART="CentOS-7.0-x86_64-swisstxt.ks"
+ISO_URL="http://mirror.switch.ch/ftp/mirror/centos/7/isos/x86_64/CentOS-7.0-1406-x86_64-NetInstall.iso"
 
 ISO_NAME=`basename $ISO_URL`
 TAG=`cd $SCRIPTROOT; git tag | sort -V | tail -n 1`
-ISO_GEN_NAME=`echo $ISO_NAME | sed 's/-netinstall.iso$//'`-swisstxt-$TAG
+ISO_GEN_NAME=`echo $ISO_NAME | sed 's/-NetInstall.iso$//'`-swisstxt-$TAG
 
 cleanup() {
   mount | grep -q $ISO_NAME && umount mnt
@@ -47,7 +47,7 @@ sed -i 's/timeout.*/timeout 5/' build/isolinux/isolinux.cfg
 # build iso
 mkisofs -o gen/$ISO_GEN_NAME.iso -r -R -J -input-charset utf-8 \
   -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -V "CentOS 6" -A "CentOS 6" -p Six -T build/isolinux/
+  -V "CentOS 7" -A "CentOS 7" -p Six -T build/isolinux/
 
 # register in cloudstack 
 # https://gist.github.com/lonefreak/4026896
